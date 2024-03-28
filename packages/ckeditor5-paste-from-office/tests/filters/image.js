@@ -8,9 +8,9 @@ import VirtualTestEditor from '@ckeditor/ckeditor5-core/tests/_utils/virtualtest
 import normalizeHtml from '@ckeditor/ckeditor5-utils/tests/_utils/normalizehtml.js';
 import { stringify as stringifyView } from '@ckeditor/ckeditor5-engine/src/dev-utils/view.js';
 
-import { parseHtml } from '../../src/filters/parse.js';
-import { replaceImagesSourceWithBase64, _convertHexToBase64 } from '../../src/filters/image.js';
-import { browserFixtures } from '../_data/image/index.js';
+import { parseHtml } from '../../src/filters/parse';
+import { replaceImagesSourceWithBase64, _convertHexToBase64 } from '../../src/filters/image';
+import { browserFixtures,pasteFromWpsFixtures } from '../_data/image/index';
 
 describe( 'PasteFromOffice - filters', () => {
 	describe( 'image', () => {
@@ -58,6 +58,17 @@ describe( 'PasteFromOffice - filters', () => {
 					replaceImagesSourceWithBase64( body, rtfString, editor.editing.model );
 
 					expect( stringifyView( body ) ).to.equal( normalizeHtml( input ) );
+				} );
+
+				it( 'should handle correctly RTF data from WPS', () => {
+					const input = `<p >
+						Foo <img width="140" height="140" src="file://C:\\Users\\DJC\\AppData\\Local\\Temp\\ksohtml33220\\wps22.png">
+					</p>`;
+					const rtfString = pasteFromWpsFixtures.pasteFromWpsRtf;
+					const { body } = parseHtml( input );
+					replaceImagesSourceWithBase64( body, rtfString, editor.editing.model );
+					const stringifyBody = stringifyView( body );
+					expect( /src="data:image\/jpeg;base64,/g.test( stringifyBody ) && /Foo/g.test( stringifyBody ) ).to.equal( true );
 				} );
 			} );
 		} );
